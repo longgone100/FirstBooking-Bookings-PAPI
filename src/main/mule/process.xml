@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sapi-bookings-trans-national="http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national" xmlns:sapi-bookings-first-coach="http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach/current/mule-sapi-bookings-first-coach.xsd
+http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national/current/mule-sapi-bookings-trans-national.xsd">
+	<sapi-bookings-trans-national:config name="Sapi_bookings_trans_national_Config" doc:name="Sapi-bookings-trans-national Config" doc:id="5393218a-bd95-4c30-9843-cb72a406eae2" property_host="${http.sapi.transnational.host}" property_port="${http.sapi.transnational.port}" property_protocol="HTTP" property_basePath="/api"/>
+	<flow name="get-routes" doc:id="3822830f-ae83-4728-ac86-201de457dc8d" >
+		<logger level="INFO" doc:name="Start" doc:id="c63882f6-634a-4557-88db-dc6047e1974f" message="Start Get Routes"/>
+		<set-variable value="#[attributes.queryParams.departureLocationCode]" doc:name="departureLocationCode" doc:id="d0786030-81ee-46ce-b834-ce6d2c39475b" variableName="departureLocationCode" />
+		<set-variable value="#[attributes.queryParams.companyCode]" doc:name="companyCode" doc:id="ffc35190-1427-4b29-baf8-3360a5e92676" variableName="companyCode"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="28cc1e6b-1922-450d-bf01-ca8d2331b1a7" >
+			<route >
+				<choice doc:name="Choice: Company Code FirstCoach or Empty" doc:id="ca57e14b-3967-4460-8663-cb82960e6763" >
+					<when expression="#[vars.companyCode == null or vars.companyCode=='FirstCoach']">
+						<ee:cache doc:name="Cache" doc:id="006f62fb-becf-4719-bb97-7db5aea5ce1e" cachingStrategy-ref="Caching_Strategy-Routes">
+							<http:request method="GET" doc:name="Routes FirstCoach" doc:id="4408a8d0-e33b-42b4-91c2-a411f9f9c7ce" config-ref="HTTP_Request_configuration-FirstCoach" sendCorrelationId="ALWAYS" correlationId="attributes.headers.'x-correlation-id'" path='#["/" ++ attributes.uriParams.transportType ++ "/FirstCoach/routes"]'>
+							<http:headers><![CDATA[#[output application/java
+---
+{
+	"x-client-id" : p('http.sapi.firstcoach.xclientid'),
+	"x-client-secret" : p('http.sapi.firstcoach.xclientsecret')
+}]]]></http:headers>
+							<http:uri-params><![CDATA[#[output application/java
+---
+{
+	transportType : attributes.uriParams.transportType
+}]]]></http:uri-params>
+						</http:request>
+							<logger level="INFO" doc:name="No cache lookup" doc:id="33653010-2aba-4a5a-b3eb-9958e8768fb5" message="No cache - lookup Routes from SAPI"/>
+						</ee:cache>
+						<ee:transform doc:name="Map Location Codes" doc:id="80938143-3ff4-40fe-9ea5-ce64ae01ec3b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	companyCode: "FirstCoach",
+	originLocation: {
+		locationCode: p('location.code.' ++ payload01.originLocation.locationCode)
+	},
+	destinationLocation: {
+		locationCode: p('location.code.' ++ payload01.destinationLocation.locationCode)
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+					</when>
+					<otherwise>
+						<ee:transform doc:name="Empty" doc:id="bf7c65f1-b41a-4e11-b55f-3a9bd143e537" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+	
+]]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</route>
+			<route >
+				<choice doc:name="Choice: Company Code TransNational or Empty" doc:id="56a3baf9-8bb0-4159-8d80-1c5fbebfbb96" >
+					<when expression="#[vars.companyCode==null  or vars.companyCode=='TransNational']">
+						<ee:cache doc:name="Cache" doc:id="a49eadfb-06e5-4b5b-96bf-3544e80e4231" cachingStrategy-ref="Caching_Strategy-Routes">
+							<sapi-bookings-trans-national:get-routes-by-transport-type-transport-company doc:name="Routes TransNational" doc:id="718d92ee-6a57-4206-8008-69c90465c877" config-ref="Sapi_bookings_trans_national_Config" transport-type="#[attributes.uriParams.'transportType']" transport-company="TransNational" x-client-id="${http.sapi.transnational.xclientid}" x-client-secret="${http.sapi.transnational.xclientsecret}" x-correlation-id="vars.xCorrelationId" />
+							<logger level="INFO" doc:name="No cache lookup" doc:id="28d7f3df-1839-4bc6-9a69-f9c108388a46" message="No cache - lookup Routes from SAPI"/>
+						</ee:cache>
+						<ee:transform doc:name="Map Location Codes" doc:id="4accc56d-2c04-4ad7-9ff4-d06ad411b700">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	companyCode: "TransNational",
+	originLocation: {
+		locationCode: p('location.code.' ++ payload01.originLocation.locationCode)
+	},
+	destinationLocation: {
+		locationCode: p('location.code.' ++ payload01.destinationLocation.locationCode)
+	}
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Empty" doc:id="ff15b5dc-5758-4739-9acd-e2d1cfffc657" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+	
+]]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Flatten" doc:id="61786aa1-e4c2-4959-851f-e6f23dd5242b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload["0"]["payload"] ++ (payload["1"]["payload"])
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice: Filter if departureLocationCode exists" doc:id="2261de4c-f7b0-4450-9f7b-60e921b417b8" >
+			<when expression="vars.departureLocationCode  != null">
+				<ee:transform doc:name="Filter departureLocationCode" doc:id="3948834f-6647-40d0-b5c5-051e079b97b3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload filter (vars.departureLocationCode == $.originLocation.locationCode) map ( payload01 , indexOfPayload01 ) -> {
+	companyCode:  payload01.companyCode,
+	originLocation: {
+		locationCode: payload01.originLocation.locationCode
+	},
+	destinationLocation: {
+		locationCode: payload01.destinationLocation.locationCode
+	}
+}
+
+
+	]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="No Filter" doc:id="9964d12f-3a8f-4a9f-95db-870537a0eb89" message="No Filter"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Map Location Descriptions" doc:id="19d13f41-0f04-4d6a-9e76-fc075d681558" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	companyCode: payload01.companyCode,
+	originLocation: {
+		locationCode: payload01.originLocation.locationCode,
+		locationDesc: p('location.desc.' ++ payload01.originLocation.locationCode)
+	},
+	destinationLocation: {
+		locationCode: payload01.destinationLocation.locationCode,
+		locationDesc: p('location.desc.' ++ payload01.destinationLocation.locationCode)
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End" doc:id="db5d8d07-ea53-4df2-ac29-dbad66fd29e7" message="End  Get Routes"/>
+	</flow>
+	<flow name="get-schedules" doc:id="8dc8beda-64e3-494f-9826-930dd328939c" >
+		<logger level="INFO" doc:name="Start" doc:id="be8a8a97-f541-472d-93d5-5e32b11ac529" message="Start Get Schedules - departureLocationCode=#[attributes.queryParams.departureLocationCode], destinationLocationCode=#[attributes.queryParams.destinationLocationCode]"/>
+		<set-variable value="#[attributes.queryParams.requestTimezone]" doc:name="requestTimezone" doc:id="f71e4727-ee7f-4589-b7c1-57cf7616ef86" variableName="requestTimezone" />
+		<set-variable value="#[attributes.queryParams.companyCode]" doc:name="companyCode" doc:id="b2ee6a4b-3519-4f82-8bf8-c2d13fb2b316" variableName="companyCode" />
+		<scatter-gather doc:name="Scatter-Gather" doc:id="cb20f7f3-1b9b-4de6-8bdb-df4bdc60205a" >
+			<route >
+				<choice doc:name="Choice: Company Code FirstCoach or Empty" doc:id="754baa5e-9831-4afb-a27e-d459aa9a88e6" >
+					<when expression="#[vars.companyCode == null or attributes.queryParams.companyCode=='FirstCoach']">
+						<http:request method="GET" doc:name="Schedules FirstCoach" doc:id="c706a4ae-3902-49a7-b123-1fac6bbf90f0" config-ref="HTTP_Request_configuration-FirstCoach" path="/{transportType}/FirstCoach/schedules" sendCorrelationId="ALWAYS" correlationId="attributes.headers.'x-correlation-id'" >
+							<http:headers ><![CDATA[#[output application/java
+---
+{
+	"x-client-id" : p('http.sapi.firstcoach.xclientid'),
+	"x-client-secret" : p('http.sapi.firstcoach.xclientsecret')
+}]]]></http:headers>
+							<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	transportType : attributes.uriParams.transportType
+}]]]></http:uri-params>
+							<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"departureLocationCode" : attributes.queryParams.departureLocationCode,
+	"destinationLocationCode" : attributes.queryParams.destinationLocationCode
+}]]]></http:query-params>
+						</http:request>
+						<ee:transform doc:name="Map Location Codes" doc:id="354f151f-1d38-44a7-9080-e639c4ea977c" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	departureSchedules: payload.departureSchedules map ( departureSchedule , indexOfDepartureSchedule ) -> {
+		availableSeats: departureSchedule.availableSeats,
+		departureDateTime: departureSchedule.departureDateTime as DateTime as String {format: "YYYY-dd'T'HH:mm:ss"},
+		travelRoute: {
+			destinationLocation: {
+				locationCode: p('location.code.' ++ departureSchedule.travelRoute.destinationLocation.locationCode)
+			},
+			originLocation: {
+				locationCode: p('location.code.' ++ departureSchedule.travelRoute.originLocation.locationCode)
+			}
+		}
+	}
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise>
+						<ee:transform doc:name="Empty" doc:id="2c65e554-afde-4ef5-b46d-5dfe5bebd3e6" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+departureSchedules: []	
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</route>
+			<route >
+				<choice doc:name="Choice: Company Code TransNational or Empty" doc:id="034307ba-834e-4aca-af22-6cc8876d59eb" >
+					<when expression="#[vars.companyCode == null or attributes.queryParams.companyCode=='TransNational']">
+						<ee:transform doc:name="To be completed - Empty as per Specification" doc:id="5e61de7e-04fa-497e-81a1-f9469d9ae12b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+departureSchedules: []	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+					</when>
+					<otherwise>
+						<ee:transform doc:name="Empty" doc:id="dd85f434-2ea6-4b59-9336-c12f6e134ef8" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+departureSchedules: []	
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Flatten" doc:id="1cee3a4b-40c6-4e28-86b5-9d97993a5634">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload["0"]["payload"] ++ (payload["1"]["payload"])
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice: Filter if requestTimeZone exists" doc:id="5f0bc22b-e24e-4271-924f-3f4d3ad26c69" >
+			<when expression="vars.requestTimezone  != null">
+				<ee:transform doc:name="Filter requestTimeZone" doc:id="81dd6487-c59e-435b-b0bf-d136b2b885b9" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	departureSchedules: payload.departureSchedules filter (p('location.timezone.' ++ $.travelRoute.originLocation.locationCode) == vars.requestTimeZone) map ( departureSchedule , indexOfDepartureSchedule ) -> {
+		availableSeats: departureSchedule.availableSeats,
+		departureDateTime: departureSchedule.departureDateTime,
+		travelRoute: departureSchedule.travelRoute
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="No requestTimeZone  Filter" doc:id="8bf4eff2-1947-47e7-a7a1-794b07465efb" message="No requestTimeZone Filter" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Map Location descriptions" doc:id="25487511-cc9f-44bd-944a-65f7dc59f503" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	departureSchedules: payload.departureSchedules map ( departureSchedule , indexOfDepartureSchedule ) -> {
+		availableSeats: departureSchedule.availableSeats,
+		departureDateTime: departureSchedule.departureDateTime,
+		travelRoute: {
+			destinationLocation: {
+				locationCode: departureSchedule.travelRoute.destinationLocation.locationCode,
+   		        locationDesc: p('location.desc.' ++ departureSchedule.travelRoute.destinationLocation.locationCode)				
+			},
+			originLocation: {
+				locationCode: departureSchedule.travelRoute.originLocation.locationCode,
+				locationDesc:  p('location.desc.' ++ departureSchedule.travelRoute.originLocation.locationCode)
+			}
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End" doc:id="3f45fef8-3a7f-4036-9ada-75c29ac922ad" message="End Get Schedules"/>
+	</flow>
+</mule>

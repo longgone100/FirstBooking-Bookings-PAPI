@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="GetRoutesResponse" format="json">
+      <types:shape format="weave" example="api/exchange_modules/13e25717-26e6-4997-a2e2-1a9169951d9d/bcm-bookings/1.0.2/examples/routes.json"><![CDATA[%dw 2.0
+
+type GetRoutesResponse = Array<{|  companyCode: String,   originLocation: {|    locationCode: String,     locationDesc: String  |},   destinationLocation: {|    locationCode: String,     locationDesc: String  |}|}> {"example": "[{\\\"companyCode\\\":\\\"TransNational\\\",\\\"originLocation\\\":{\\\"locationCode\\\":\\\"BEN-SG\\\",\\\"locationDesc\\\":\\\"Beauna Vista Singapore\\\"},\\\"destinationLocation\\\":{\\\"locationCode\\\":\\\"KLG-MY\\\",\\\"locationDesc\\\":\\\"Klang Malaysia\\\"}}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="HttpAttibutes" format="java">
+      <types:shape format="java" element="org.mule.extension.http.api.HttpRequestAttributes"/>
+    </types:type>
+    <types:type name="GetSchedulesReponse" format="json">
+      <types:shape format="weave" example="api/exchange_modules/13e25717-26e6-4997-a2e2-1a9169951d9d/bcm-bookings/1.0.2/examples/departureSchedules.json"><![CDATA[%dw 2.0
+
+type GetSchedulesReponse = {|
+  departureSchedules: Array<{|    availableSeats: Number {"typeId": "int"},     departureDateTime: String,     travelRoute: {|      destinationLocation: {|        locationCode: String,         locationDesc: String      |},       originLocation: {|        locationCode: String,         locationDesc: String      |}    |}  |}>
+|} {"example": "{\\\"departureSchedules\\\":[{\\\"availableSeats\\\":20,\\\"departureDateTime\\\":\\\"2019-04-30T16:41:41\\\",\\\"travelRoute\\\":{\\\"destinationLocation\\\":{\\\"locationCode\\\":\\\"KLG-MY\\\",\\\"locationDesc\\\":\\\"Klang Malaysia\\\"},\\\"originLocation\\\":{\\\"locationCode\\\":\\\"BEN-SG\\\",\\\"locationDesc\\\":\\\"Beauna Vista Singapore\\\"}}},{\\\"availableSeats\\\":30,\\\"departureDateTime\\\":\\\"2019-04-30T18:41:41\\\",\\\"travelRoute\\\":{\\\"destinationLocation\\\":{\\\"locationCode\\\":\\\"KLG-MY\\\",\\\"locationDesc\\\":\\\"Klang Malaysia\\\"},\\\"originLocation\\\":{\\\"locationCode\\\":\\\"BL-SG\\\",\\\"locationDesc\\\":\\\"Beauna Vista Singapore\\\"}}}]}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="GetSchedulesFirstCoachResponse" format="json">
+      <types:shape format="weave" example="examples/GetSchedulesFirstCoachResponse.json"><![CDATA[%dw 2.0
+
+type GetSchedulesFirstCoachResponse = {|
+  departureSchedules: Array<{|    availableSeats: Number {"typeId": "int"},     departureDateTime: String,     travelRoute: {|      destinationLocation: {| locationCode: String |},       originLocation: {| locationCode: String |}    |}  |}>
+|} {"example": "{\\\"departureSchedules\\\":[{\\\"availableSeats\\\":20,\\\"departureDateTime\\\":\\\"2019-04-30T16:41:41.090Z\\\",\\\"travelRoute\\\":{\\\"destinationLocation\\\":{\\\"locationCode\\\":\\\"KLG-MY\\\"},\\\"originLocation\\\":{\\\"locationCode\\\":\\\"BEN-SG\\\"}}},{\\\"availableSeats\\\":30,\\\"departureDateTime\\\":\\\"2019-04-30T16:41:41.090Z\\\",\\\"travelRoute\\\":{\\\"destinationLocation\\\":{\\\"locationCode\\\":\\\"KLG-MY\\\"},\\\"originLocation\\\":{\\\"locationCode\\\":\\\"BL-SG\\\"}}}]}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#3948834f-6647-40d0-b5c5-051e079b97b3">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="GetRoutesResponse"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#19d13f41-0f04-4d6a-9e76-fc075d681558">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="GetRoutesResponse"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="GetRoutesResponse"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#d0786030-81ee-46ce-b834-ce6d2c39475b"/>
+  <types:enrichment select="#3822830f-ae83-4728-ac86-201de457dc8d">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:attributes type="HttpAttibutes"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#80938143-3ff4-40fe-9ea5-ce64ae01ec3b">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="GetRoutesResponse"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="GetRoutesResponse"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#354f151f-1d38-44a7-9080-e639c4ea977c">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="GetSchedulesFirstCoachResponse"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="GetSchedulesReponse"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#25487511-cc9f-44bd-944a-65f7dc59f503">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="GetSchedulesReponse"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="GetSchedulesReponse"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#8dc8beda-64e3-494f-9826-930dd328939c">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:attributes type="HttpAttibutes"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>
