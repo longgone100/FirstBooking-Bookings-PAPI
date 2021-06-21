@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:sapi-bookings-trans-national="http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national" xmlns:sapi-bookings-first-coach="http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:sapi-bookings-trans-national="http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national"
+	xmlns:sapi-bookings-first-coach="http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach/current/mule-sapi-bookings-first-coach.xsd
-http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national/current/mule-sapi-bookings-trans-national.xsd">
+http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national/current/mule-sapi-bookings-trans-national.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
 	<sapi-bookings-trans-national:config name="Sapi_bookings_trans_national_Config" doc:name="Sapi-bookings-trans-national Config" doc:id="5393218a-bd95-4c30-9843-cb72a406eae2" property_host="${http.sapi.transnational.host}" property_port="${http.sapi.transnational.port}" property_protocol="HTTP" property_basePath="/api"/>
 	<flow name="get-routes" doc:id="3822830f-ae83-4728-ac86-201de457dc8d" >
 		<logger level="INFO" doc:name="Start" doc:id="c63882f6-634a-4557-88db-dc6047e1974f" message="Start Get Routes"/>
@@ -62,6 +63,7 @@ output application/json
 						</ee:transform>
 					</otherwise>
 				</choice>
+				<os:clear doc:name="Clear" doc:id="900466df-74af-48bd-8f0e-f741a3cf79e8" />
 			</route>
 			<route >
 				<choice doc:name="Choice: Company Code TransNational or Empty" doc:id="56a3baf9-8bb0-4159-8d80-1c5fbebfbb96" >

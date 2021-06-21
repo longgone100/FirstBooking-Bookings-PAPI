@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
 	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
 http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
     <http:listener-config name="papi-bookings-httpListenerConfig">
         <http:listener-connection host="${http.listener.host}" port="${http.listener.port}" />
     </http:listener-config>
@@ -16,12 +17,13 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	<global-property doc:name="Global Property" doc:id="a17daf68-e5ca-4b33-9e76-6be91349d7e1" name="mule.env" value="local" />
 	<configuration-properties doc:name="Configuration properties" doc:id="b0f976c6-fbcc-4de0-9d04-78ee6a655853" file="configs/app-config-${mule.env}.properties" />
 	<configuration-properties doc:name="Configuration properties" doc:id="ca8da182-5d5b-4c82-b270-5075acbd893c" file="configs\location-mappings.properties" />
-	<ee:object-store-caching-strategy name="Caching_Strategy-Routes" doc:name="Caching Strategy" doc:id="a875421e-b599-46bc-9f6d-9ce6afb98dcc" keyGenerationExpression="#[vars.CompanyCode]" />
+	<ee:object-store-caching-strategy name="Caching_Strategy-Routes" doc:name="Caching Strategy" doc:id="a875421e-b599-46bc-9f6d-9ce6afb98dcc" keyGenerationExpression="#[vars.CompanyCode]" objectStore="Object_store-RoutesCache"/>
 	<http:request-config name="HTTP_Request_configuration-FirstCoach" doc:name="HTTP Request configuration" doc:id="cb9ebd33-33ca-4e3a-a506-fbf7e34d124c" basePath="/api">
 		<http:request-connection host="${http.sapi.firstcoach.host}" port="${http.sapi.firstcoach.port}" usePersistentConnections="false">
 			<http:authentication >
 				<http:basic-authentication username="${http.sapi.firstcoach.username}" password="${http.sapi.firstcoach.password}"/>
 			</http:authentication>
 		</http:request-connection>
-	</http:request-config>	
+	</http:request-config>
+	<os:object-store name="Object_store-RoutesCache" doc:name="Object store" doc:id="0dfaf7e7-8bea-4e15-b1ea-ec40e62a8d1e" expirationInterval="${routes.cache.expiration.interval.hours}" expirationIntervalUnit="HOURS" entryTtl="${routes.cache.expiration.interval.ttl.hours}" entryTtlUnit="HOURS"/>	
 </mule>
