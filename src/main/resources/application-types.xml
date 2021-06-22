@@ -114,4 +114,13 @@ type GetSchedulesFirstCoachResponse = {|
       </types:input-event>
     </types:processor-declaration>
   </types:enrichment>
+  <types:enrichment select="#81dd6487-c59e-435b-b0bf-d136b2b885b9">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="GetSchedulesReponse"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
 </types:mule>
