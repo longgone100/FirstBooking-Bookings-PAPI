@@ -24,7 +24,7 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 ---
 {
 	"x-client-id" : p('http.sapi.firstcoach.xclientid'),
-	"x-client-secret" : p('http.sapi.firstcoach.xclientsecret')
+	"x-client-secret" : p('secure::http.sapi.firstcoach.xclientsecret')
 }]]]></http:headers>
 							<http:uri-params><![CDATA[#[output application/java
 ---
@@ -70,7 +70,7 @@ output application/json
 					<when expression="#[vars.companyCode==null  or vars.companyCode=='TransNational']">
 						<set-variable value="transnational" doc:name="companyCode (for cache if null)" doc:id="1427e573-2aa8-4377-87b0-1c76ba8589bc" variableName="companyCode" />
 						<ee:cache doc:name="Cache" doc:id="a49eadfb-06e5-4b5b-96bf-3544e80e4231" cachingStrategy-ref="Caching_Strategy-Routes">
-							<sapi-bookings-trans-national:get-routes-by-transport-type-transport-company doc:name="Routes TransNational" doc:id="718d92ee-6a57-4206-8008-69c90465c877" config-ref="Sapi_bookings_trans_national_Config" transport-type="#[attributes.uriParams.'transportType']" transport-company="transnational" x-client-id="${http.sapi.transnational.xclientid}" x-client-secret="${http.sapi.transnational.xclientsecret}" x-correlation-id="vars.xCorrelationId" />
+							<sapi-bookings-trans-national:get-routes-by-transport-type-transport-company doc:name="Routes TransNational" doc:id="718d92ee-6a57-4206-8008-69c90465c877" config-ref="Sapi_bookings_trans_national_Config" transport-type="#[attributes.uriParams.'transportType']" transport-company="transnational" x-client-id="${http.sapi.transnational.xclientid}" x-client-secret="${secure::http.sapi.transnational.xclientsecret}" x-correlation-id="vars.xCorrelationId" />
 							<logger level="INFO" doc:name="No cache lookup" doc:id="28d7f3df-1839-4bc6-9a69-f9c108388a46" message="No cache - lookup Routes from SAPI" />
 						</ee:cache>
 						<ee:transform doc:name="Map Location Codes" doc:id="4accc56d-2c04-4ad7-9ff4-d06ad411b700">

@@ -70,6 +70,12 @@
 			<version>1.2.0</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
+		<dependency>
+		<groupId>com.mulesoft.modules</groupId>
+		<artifactId>mule-secure-configuration-property-module</artifactId>
+		<classifier>mule-plugin</classifier>
+		<version>1.0.0</version>
+		</dependency>		
 	</dependencies>
 
 	<repositories>
