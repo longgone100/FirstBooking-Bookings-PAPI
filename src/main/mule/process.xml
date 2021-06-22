@@ -162,8 +162,8 @@ payload map ( payload01 , indexOfPayload01 ) -> {
 	</flow>
 	<flow name="get-schedules" doc:id="8dc8beda-64e3-494f-9826-930dd328939c" >
 		<logger level="INFO" doc:name="Start" doc:id="be8a8a97-f541-472d-93d5-5e32b11ac529" message="Start Get Schedules - departureLocationCode=#[attributes.queryParams.departureLocationCode], destinationLocationCode=#[attributes.queryParams.destinationLocationCode]"/>
-		<set-variable value="attributes.queryParams.departureLocationCode" doc:name="departureLocationCode" doc:id="d91f3576-0aab-474d-9ab6-7a533d51b122" variableName="departureLocationCode"/>
-		<set-variable value="destinationLocationCode" doc:name="destinationLocationCode" doc:id="a4d581b0-5c1c-4b2c-88dd-b6c1498e40db" variableName="destinationLocationCode"/>
+		<set-variable value="#[attributes.queryParams.departureLocationCode]" doc:name="departureLocationCode" doc:id="d91f3576-0aab-474d-9ab6-7a533d51b122" variableName="departureLocationCode"/>
+		<set-variable value="#[attributes.queryParams.destinationLocationCode]" doc:name="destinationLocationCode" doc:id="a4d581b0-5c1c-4b2c-88dd-b6c1498e40db" variableName="destinationLocationCode"/>
 		<set-variable value="#[attributes.queryParams.requestTimezone]" doc:name="requestTimezone" doc:id="f71e4727-ee7f-4589-b7c1-57cf7616ef86" variableName="requestTimezone" />
 		<set-variable value="#[attributes.queryParams.companyCode]" doc:name="companyCode" doc:id="b2ee6a4b-3519-4f82-8bf8-c2d13fb2b316" variableName="companyCode" />
 		<scatter-gather doc:name="Scatter-Gather" doc:id="cb20f7f3-1b9b-4de6-8bdb-df4bdc60205a" >
