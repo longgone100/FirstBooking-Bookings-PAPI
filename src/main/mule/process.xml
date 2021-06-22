@@ -296,36 +296,16 @@ output application/json
 				<logger level="INFO" doc:name="No requestTimeZone  Filter" doc:id="8bf4eff2-1947-47e7-a7a1-794b07465efb" message="No requestTimeZone Filter" />
 			</otherwise>
 		</choice>
-		<choice doc:name="Choice: Filter if departureLocationCode exists" doc:id="7759e633-7a71-4d55-ac81-3b05ec6e7f72" >
-			<when expression="vars.departureLocationCode   != null">
-				<ee:transform doc:name="Filter departureLocationCode" doc:id="b4edc2f1-f125-4964-a543-e5b24159a5a9" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-	departureSchedules: payload.departureSchedules filter ($.travelRoute.originLocation.locationCode == vars.departureLocationCode ) map ( departureSchedule , indexOfDepartureSchedule ) -> {
-		availableSeats: departureSchedule.availableSeats,
-		departureDateTime: departureSchedule.departureDateTime,
-		travelRoute: departureSchedule.travelRoute
-	}
-}]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
-			</when>
-			<otherwise >
-				<logger level="INFO" doc:name="No departureLocationCode Filter" doc:id="d9f9c19c-0d1b-460b-a2d4-0c55b96a1df4" message="No departureLocationCode  Filter"/>
-			</otherwise>
-		</choice>
-		<choice doc:name="Choice: Filter if destinationLocationCode exists" doc:id="1c475b0b-4d79-4259-8eb1-7e08b5ba8907">
-			<when expression="vars.destinationLocationCode   != null">
-				<ee:transform doc:name="Filter destinationLocationCode" doc:id="d0151435-2f8c-4aa1-bba8-8ddd2cf24c55">
+		<ee:transform doc:name="Filter departureLocationCode &amp; destinationLocationCode" doc:id="b4edc2f1-f125-4964-a543-e5b24159a5a9">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	departureSchedules: payload.departureSchedules filter ($.travelRoute.destinationLocation.locationCode == vars.destinationLocationCode ) map ( departureSchedule , indexOfDepartureSchedule ) -> {
+	departureSchedules: payload.departureSchedules
+	 filter ($.travelRoute.originLocation.locationCode == vars.departureLocationCode and
+	 	$.travelRoute.destinationLocation.locationCode == vars.destinationLocationCode)
+	 	  map ( departureSchedule , indexOfDepartureSchedule ) -> {
 		availableSeats: departureSchedule.availableSeats,
 		departureDateTime: departureSchedule.departureDateTime,
 		travelRoute: departureSchedule.travelRoute
@@ -333,11 +313,6 @@ output application/json
 }]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-			</when>
-			<otherwise>
-				<logger level="INFO" doc:name="No destinationLocationCode Filter" doc:id="f45c72d6-d1f9-4a99-bd15-b61635fc6fce" message="No destinationLocationCode Filter"/>
-			</otherwise>
-		</choice>
 		<ee:transform doc:name="Map Location descriptions" doc:id="25487511-cc9f-44bd-944a-65f7dc59f503" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
