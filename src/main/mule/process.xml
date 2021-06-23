@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:sapi-bookings-trans-national="http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national"
-	xmlns:sapi-bookings-first-coach="http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:sapi-bookings-trans-national="http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national"
+	xmlns:sapi-bookings-first-coach="http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach http://www.mulesoft.org/schema/mule/sapi-bookings-first-coach/current/mule-sapi-bookings-first-coach.xsd
 http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national http://www.mulesoft.org/schema/mule/sapi-bookings-trans-national/current/mule-sapi-bookings-trans-national.xsd
-http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
-	<sapi-bookings-trans-national:config name="Sapi_bookings_trans_national_Config" doc:name="Sapi-bookings-trans-national Config" doc:id="5393218a-bd95-4c30-9843-cb72a406eae2" property_host="${http.sapi.transnational.host}" property_port="${http.sapi.transnational.port}" property_protocol="HTTP" property_basePath="/api"/>
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
 	<flow name="get-routes" doc:id="3822830f-ae83-4728-ac86-201de457dc8d" >
 		<logger level="INFO" doc:name="Start" doc:id="c63882f6-634a-4557-88db-dc6047e1974f" message="Start Get Routes"/>
 		<set-variable value="#[attributes.queryParams.departureLocationCode]" doc:name="departureLocationCode" doc:id="d0786030-81ee-46ce-b834-ce6d2c39475b" variableName="departureLocationCode" />
@@ -70,7 +70,14 @@ output application/json
 					<when expression="#[vars.companyCode==null  or vars.companyCode=='TransNational']">
 						<set-variable value="transnational" doc:name="companyCode (for cache if null)" doc:id="1427e573-2aa8-4377-87b0-1c76ba8589bc" variableName="companyCode" />
 						<ee:cache doc:name="Cache" doc:id="a49eadfb-06e5-4b5b-96bf-3544e80e4231" cachingStrategy-ref="Caching_Strategy-Routes">
-							<sapi-bookings-trans-national:get-routes-by-transport-type-transport-company doc:name="Routes TransNational" doc:id="718d92ee-6a57-4206-8008-69c90465c877" config-ref="Sapi_bookings_trans_national_Config" transport-type="#[attributes.uriParams.'transportType']" transport-company="transnational" x-client-id="${http.sapi.transnational.xclientid}" x-client-secret="${secure::http.sapi.transnational.xclientsecret}" x-correlation-id="vars.xCorrelationId" />
+							<http:request method="GET" doc:name="Routes TransNational" doc:id="f2a6b5d2-c908-4c1d-95e9-c47796fc2337" config-ref="HTTP_Request_configuration-TransNational" path='#["/" ++ attributes.uriParams.transportType ++ "/transnational/routes"]' sendCorrelationId="ALWAYS" correlationId="attributes.headers.'x-correlation-id'">
+								<http:headers ><![CDATA[#[output application/java
+---
+{
+	"x-client-id" : p('http.sapi.transnational.xclientid'),
+	"x-client-secret" : p('secure::http.sapi.transnational.xclientsecret')
+}]]]></http:headers>
+							</http:request>
 							<logger level="INFO" doc:name="No cache lookup" doc:id="28d7f3df-1839-4bc6-9a69-f9c108388a46" message="No cache - lookup Routes from SAPI" />
 						</ee:cache>
 						<ee:transform doc:name="Map Location Codes" doc:id="4accc56d-2c04-4ad7-9ff4-d06ad411b700">
@@ -170,7 +177,6 @@ payload map ( payload01 , indexOfPayload01 ) -> {
 			<route >
 				<choice doc:name="Choice: Company Code FirstCoach or Empty" doc:id="754baa5e-9831-4afb-a27e-d459aa9a88e6" >
 					<when expression="#[vars.companyCode == null or attributes.queryParams.companyCode=='FirstCoach']">
-						<set-variable value="firstcoach" doc:name="companyCode (in case null)" doc:id="50619cc3-7d07-4dda-82c8-2d7de81b62db" variableName="companyCode"/>
 						<http:request method="GET" doc:name="Schedules FirstCoach" doc:id="c706a4ae-3902-49a7-b123-1fac6bbf90f0" config-ref="HTTP_Request_configuration-FirstCoach" path='#["/" ++ attributes.uriParams.transportType ++ "/firstcoach/schedules"]' sendCorrelationId="ALWAYS" correlationId="attributes.headers.'x-correlation-id'" >
 							<http:headers ><![CDATA[#[output application/java
 ---
@@ -229,7 +235,6 @@ departureSchedules: []
 			<route >
 				<choice doc:name="Choice: Company Code TransNational or Empty" doc:id="034307ba-834e-4aca-af22-6cc8876d59eb" >
 					<when expression="#[vars.companyCode == null or attributes.queryParams.companyCode=='TransNational']">
-						<set-variable value="transnational" doc:name="companyCode (in case null)" doc:id="004976bc-a8cb-4e91-b8b8-d0258f294f94" variableName="companyCode" />
 						<ee:transform doc:name="To be completed - Empty as per Specification" doc:id="5e61de7e-04fa-497e-81a1-f9469d9ae12b">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
@@ -296,23 +301,6 @@ output application/json
 				<logger level="INFO" doc:name="No requestTimeZone  Filter" doc:id="8bf4eff2-1947-47e7-a7a1-794b07465efb" message="No requestTimeZone Filter" />
 			</otherwise>
 		</choice>
-		<ee:transform doc:name="Filter departureLocationCode &amp; destinationLocationCode" doc:id="b4edc2f1-f125-4964-a543-e5b24159a5a9">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-	departureSchedules: payload.departureSchedules
-	 filter ($.travelRoute.originLocation.locationCode == vars.departureLocationCode and
-	 	$.travelRoute.destinationLocation.locationCode == vars.destinationLocationCode)
-	 	  map ( departureSchedule , indexOfDepartureSchedule ) -> {
-		availableSeats: departureSchedule.availableSeats,
-		departureDateTime: departureSchedule.departureDateTime,
-		travelRoute: departureSchedule.travelRoute
-	}
-}]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
 		<ee:transform doc:name="Map Location descriptions" doc:id="25487511-cc9f-44bd-944a-65f7dc59f503" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0

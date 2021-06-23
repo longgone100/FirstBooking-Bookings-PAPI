@@ -1,18 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
 	xmlns:os="http://www.mulesoft.org/schema/mule/os"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
 http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
-http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
     <http:listener-config name="papi-bookings-httpListenerConfig">
-        <http:listener-connection host="${http.listener.host}" port="${http.listener.port}" />
+        <http:listener-connection host="${http.listener.host}" port="${http.listener.port}" protocol="HTTPS">
+			<tls:context >
+				<tls:key-store type="jks" path="keystore/keystore.jks" alias="firstcoach" keyPassword="ronald" password="ronald" />
+			</tls:context>
+		</http:listener-connection>
     </http:listener-config>
     <apikit:config name="papi-bookings-config" api="papi-bookings.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
 	<global-property doc:name="Global Property" doc:id="a17daf68-e5ca-4b33-9e76-6be91349d7e1" name="mule.env" value="local" />
@@ -20,12 +25,23 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	<configuration-properties doc:name="Configuration properties" doc:id="ca8da182-5d5b-4c82-b270-5075acbd893c" file="configs\location-mappings.properties" />
 	<ee:object-store-caching-strategy name="Caching_Strategy-Routes" doc:name="Caching Strategy" doc:id="a875421e-b599-46bc-9f6d-9ce6afb98dcc" keyGenerationExpression="#[vars.CompanyCode]" objectStore="Object_store-RoutesCache"/>
 	<http:request-config name="HTTP_Request_configuration-FirstCoach" doc:name="HTTP Request configuration" doc:id="cb9ebd33-33ca-4e3a-a506-fbf7e34d124c" basePath="/api">
-		<http:request-connection host="${http.sapi.firstcoach.host}" port="${http.sapi.firstcoach.port}" usePersistentConnections="false">
+		<http:request-connection host="${http.sapi.firstcoach.host}" port="${http.sapi.firstcoach.port}" usePersistentConnections="false" protocol="HTTPS">
+			<tls:context >
+				<tls:trust-store path="keystore/truststore.ts" password="ronald" type="jks" insecure="true"/>
+				<tls:key-store type="jceks" />
+			</tls:context>
 			<http:authentication >
 				<http:basic-authentication username="${http.sapi.firstcoach.username}" password="${secure::http.sapi.firstcoach.password}"/>
 			</http:authentication>
 		</http:request-connection>
 	</http:request-config>
 	<os:object-store name="Object_store-RoutesCache" doc:name="Object store" doc:id="0dfaf7e7-8bea-4e15-b1ea-ec40e62a8d1e" expirationInterval="${routes.cache.expiration.interval.hours}" expirationIntervalUnit="HOURS" entryTtl="${routes.cache.expiration.interval.ttl.hours}" entryTtlUnit="HOURS" persistent="false"/>
-	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="de34d166-2951-455c-a576-2b6631fd1cf7" key="saKO09u7lsknolsiduf09LKJLODFVSKD" file="configs/app-config-${mule.env}.properties"/>	
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="de34d166-2951-455c-a576-2b6631fd1cf7" key="saKO09u7lsknolsiduf09LKJLODFVSKD" file="configs/app-config-${mule.env}.properties"/>
+		<http:request-config name="HTTP_Request_configuration-TransNational" doc:name="HTTP Request configuration" doc:id="02b13643-c858-4836-8cca-e2fcfe76b60e" basePath="/api">
+		<http:request-connection protocol="HTTPS" host="${http.sapi.transnational.host}" port="${http.sapi.transnational.port}">
+			<tls:context >
+				<tls:trust-store path="keystore/truststore.ts" password="ronald" type="jks" insecure="true" />
+			</tls:context>
+		</http:request-connection>
+	</http:request-config>	
 </mule>
